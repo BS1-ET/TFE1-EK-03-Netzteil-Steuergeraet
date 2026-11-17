@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TFE 1 · EK · Werkstatt-Wettbewerb Netzteil VM-5</title>
+<style>
+:root{--rot:#C62828;--orange:#ef6c00;--dunkel:#263238;--blech:#eceff1;--gruen:#2e7d32;--grau:#666}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#cfd8dc;color:#222}
+header{display:flex;align-items:center;gap:18px;padding:12px 22px;background:#fff;border-bottom:3px solid var(--rot)}
+header img{height:56px}
+header small{color:var(--rot);font-weight:bold;font-size:.8rem;display:block}
+header h1{margin:2px 0 0;font-size:1.3rem}
+.band{background:var(--dunkel);color:#fff;padding:10px 22px;display:flex;gap:6px;flex-wrap:wrap}
+.band button{background:#37474f;color:#fff;border:0;border-radius:4px;padding:9px 14px;cursor:pointer;font-size:.95rem}
+.band button.akt{background:var(--orange)}
+.band button.zu{color:#90a4ae}
+.wrap{max-width:1050px;margin:18px auto;background:#fff;padding:22px 28px;box-shadow:0 4px 18px rgba(0,0,0,.18);min-height:520px;border-top:6px solid var(--orange)}
+h2{color:var(--dunkel);margin-top:0}
+a{color:#0d47a1}
+.karte{border:1px solid #cfd8dc;border-radius:8px;padding:12px 16px;margin:10px 0;background:var(--blech)}
+.stempel{display:inline-block;border:2px solid var(--gruen);color:var(--gruen);padding:2px 10px;transform:rotate(-4deg);font-weight:bold;border-radius:4px;margin-left:8px;font-size:.85rem}
+button.los{background:var(--orange);color:#fff;border:0;border-radius:6px;padding:8px 14px;font-size:.95rem;cursor:pointer}
+button.sek{background:#555}
+.frage{border-bottom:1px dashed #ccc;padding:9px 0}
+.frage label{display:block;margin:3px 0;cursor:pointer}
+.fb{margin-top:6px;font-size:.9rem;padding:6px 10px;border-radius:6px;display:none}
+.fb.r{background:#e8f5e9;display:block}.fb.f{background:#ffebee;display:block}
+.koord{font-size:.75rem;color:var(--grau)}
+input[type=text]{width:110px;padding:4px}
+select{padding:4px}
+table{border-collapse:collapse;margin:8px 0}td,th{border:1px solid #bbb;padding:5px 9px;font-size:.9rem;text-align:left}
+th{background:#eceff1}
+.ok{color:var(--gruen);font-weight:bold}.nok{color:var(--rot);font-weight:bold}
+.preis{font-size:1.6rem;font-weight:bold;color:var(--dunkel)}
+.podest td:first-child{font-weight:bold;font-size:1.1rem}
+footer{max-width:1050px;margin:0 auto 20px;color:var(--grau);font-size:.75rem;display:flex;justify-content:space-between;padding:0 4px}
+</style>
+</head>
+<body>
+<header>
+<img src="logo_technikerschule.jpg" alt="Technikerschule Bayreuth – Fahrzeugtechnik und Elektromobilität">
+<div><small>TFE 1 · Elektronik · LS EK 3 · Woche 13–16</small><h1>Werkstatt-Wettbewerb: Versorgungsmodul VM-5 Rev B</h1></div>
+</header>
+<div class="band" id="nav"></div>
+<div class="wrap" id="seite"></div>
+<footer><span>Staatliche Technikerschule Bayreuth · Fachschule für Fahrzeugtechnik und Elektromobilität</span><span>Betrieb und Preise fiktiv · keine Lösungen auf dieser Seite</span></footer>
+<script>
+const P='pdf/';
+const L=(f,t)=>`<a target="_blank" rel="noopener" href="${P}${f}">${t}</a>`;
+const GERAETE='https://bs1-et.github.io/TFE1-EK-02-Gleichrichter/geraete.html';
+const TESTS={
+ t_stab:{titel:'Test „Stabilisierung“',fragen:[
+  {k:'IA2',t:'In welcher Richtung wird eine Z-Diode zur Stabilisierung betrieben?',o:['Durchlassrichtung','Sperrrichtung','beide Richtungen gleich gut'],r:[1],e:'Erst in Sperrrichtung tritt ab U_Z der steile Stromanstieg auf.'},
+  {k:'IA3',t:'U_E,min = 10 V, U_Z = 6,2 V, I_L = 8 mA, I_Z,min = 4 mA. Größter zulässiger Vorwiderstand in Ω?',num:316.7,tol:3,e:'R_V ≤ (10 V − 6,2 V) / 12 mA = 317 Ω.'},
+  {k:'IA3',t:'Z-Diode 6,8 V mit P_tot = 0,5 W. Größter Z-Strom in mA?',num:73.5,tol:1,e:'I_Z,max = 0,5 W / 6,8 V = 73,5 mA.'},
+  {k:'IA1',t:'Welche Ausgangsspannung liefert ein 7812?',o:['−12 V','+12 V','+7,8 V'],r:[1],e:'78xx: positive Festspannung xx Volt.'},
+  {k:'IA3',t:'7812 mit U_drop = 2 V: kleinste zulässige Eingangsspannung in V (Augenblickswert)?',num:14,tol:0.05,e:'12 V + 2 V = 14 V – in jedem Augenblick, auch im Brummtal.'},
+  {k:'IA3',t:'Regler: U_E = 9 V, U_A = 5 V, I_L = 0,5 A. Verlustleistung in W?',num:2,tol:0.02,e:'P_V = (9 V − 5 V) · 0,5 A = 2 W.'},
+  {k:'IA3',t:'ϑ_U = 30 °C, P_V = 1,5 W, R_th = 50 K/W. Sperrschichttemperatur in °C?',num:105,tol:0.5,e:'ϑ_J = 30 °C + 1,5 W · 50 K/W = 105 °C.'},
+  {k:'IA3',t:'Warum setzen Steuergeräte am 12-V-Bordnetz Low-Drop-Regler ein? (mehrere richtig)',multi:true,o:['Beim Kaltstart bricht die Bordnetzspannung stark ein.','Ein LDO braucht eine kleinere Mindestspannungsdifferenz.','Ein LDO hat keine Verlustleistung.','Ein LDO ist immer billiger als ein 7805.'],r:[0,1],e:'Der LDO regelt noch bei kleiner Spannungsdifferenz. Verlustleistung hat er trotzdem: (U_E − U_A) · I_L.'}
+ ]},
+ t_glatt:{titel:'Test „Glättung“',fragen:[
+  {k:'IA1',t:'Brummfrequenz einer Brückenschaltung B2U am 50-Hz-Netz in Hz?',num:100,tol:0.1,e:'Zwei Kuppen je Periode → 100 Hz.'},
+  {k:'IA3',t:'B2U, U_Tr = 15 V, U_F = 0,7 V je Diode. Scheitelwert am Ladekondensator in V?',num:19.8,tol:0.1,e:'û = 1,414 · 15 V − 2 · 0,7 V = 19,8 V.'},
+  {k:'IA3',t:'B2U, I_L = 0,5 A, C = 2200 µF. Brummspannung (Näherung) in V?',num:2.27,tol:0.05,e:'ΔU ≈ 0,5 A / (100 Hz · 2200 µF) = 2,27 V.'},
+  {k:'IA3',t:'B2U, I_L = 0,2 A, ΔU höchstens 2 V. Mindestkapazität in µF (ohne Toleranz)?',num:1000,tol:5,e:'C = 0,2 A / (100 Hz · 2 V) = 1000 µF.'},
+  {k:'IA2',t:'Wie verhält sich die gemessene Brummspannung zur Näherung ΔU ≈ I/(f·C)?',o:['Sie ist kleiner.','Sie ist genau gleich.','Sie ist immer doppelt so groß.'],r:[0],e:'Die Näherung rechnet mit Entladung über die ganze Halbperiode – sie liegt auf der sicheren Seite.'},
+  {k:'IB2',t:'Wie messen Sie eine Brummspannung von 1 V auf 12 V Gleichspannung genau?',o:['DC-Kopplung, 5 V/div','AC-Kopplung, 0,5 V/div','Tastkopf auf 10X und Trigger auf CH2'],r:[1],e:'AC-Kopplung trennt den Gleichanteil ab, dann kann V/div klein gewählt werden.'},
+  {k:'IA3',t:'û = 15 V, ΔU = 2 V. Mittelwert der Kondensatorspannung (Näherung) in V?',num:14,tol:0.05,e:'U_C ≈ û − ΔU / 2 = 14 V.'},
+  {k:'IA3',t:'Berechnet sind 800 µF. Elko-Toleranz −20 %. Welchen Katalogwert wählen Sie?',o:['680 µF','1000 µF','1500 µF','470 µF'],r:[1],e:'C_Nenn ≥ 800 µF / 0,8 = 1000 µF.'}
+ ]}
+};
+// Katalog
+const TR={T9_6:{n:'230 V / 9 V, 6 VA',u:9,s:6,p:5.90},T9_10:{n:'230 V / 9 V, 10 VA',u:9,s:10,p:6.50},T12_6:{n:'230 V / 12 V, 6 VA',u:12,s:6,p:6.20},T12_10:{n:'230 V / 12 V, 10 VA',u:12,s:10,p:6.80}};
+const CK={470:0.11,680:0.14,1000:0.18,1500:0.25,2200:0.34};
+const RG={'7805':{n:'7805',d:2.0,p:0.22},LDO:{n:'Low-Drop 5 V',d:0.8,p:0.95}};
+function lies(k){try{return JSON.parse(localStorage.getItem('tfe1ek3_'+k))}catch(e){return null}}
+function schreib(k,v){try{localStorage.setItem('tfe1ek3_'+k,JSON.stringify(v))}catch(e){}}
+const ok=t=>{const r=lies(t);return r&&r.p>=80};
+function frei(id){if(id==='l2')return ok('t_stab');if(id==='wb')return ok('t_stab')&&ok('t_glatt');return true}
+const SEITEN=[
+ {id:'auftrag',t:'Auftrag',html:`<h2>Der Auftrag</h2><p>Das Versorgungsmodul <b>VM-5 Rev A</b> der Fichtelgebirge Electronic Systems GmbH bricht bei Volllast ein und überhitzt. Ihr Team tritt im Wettbewerb um die Serienversion <b>Rev B</b> an: günstig <b>und</b> nachweislich sicher.</p>
+ <div class="karte"><ul><li>${L('TFE1_EK_210-Leitsituation-Netzteil-28.pdf','Leitsituation mit Pflichtenheft, Bauteilkatalog und Wettbewerbsregeln')}</li><li>${L('TFE1_EK_290-Hilfekarten-28.pdf','Hilfekarten H1–H5')}</li><li><a target="_blank" rel="noopener" href="${GERAETE}">Kurzanleitung Laborgeräte</a> (IMOD, Multimeter, Oszilloskop)</li></ul></div>
+ <p><b>Ablauf:</b> Labor 1 → Test „Stabilisierung“ → Labor 2 → Test „Glättung“ → Wettbewerb (Nachweis-Check, Abgabe Ende Woche 15) → Rangliste und Labornachweis in Woche 16.</p>`},
+ {id:'l1',t:'Labor 1 · Stabilisierung',html:`<h2>Labor 1 – Z-Diode und Festspannungsregler <span class="koord">Woche 13–14</span></h2><div class="karte"><ul><li>${L('TFE1_EK_220-Infoblatt-Stabilisierung-28.pdf','Infoblatt Stabilisierung')}</li><li>${L('TFE1_EK_221-Labor1-ZDiode-Regler-28.pdf','Arbeitsblatt Labor 1')}</li></ul></div><p><button class="los" onclick="starte('t_stab')">Test „Stabilisierung“</button> <span id="b_t_stab"></span></p>`},
+ {id:'l2',t:'Labor 2 · Glättung',html:`<h2>Labor 2 – Glättung messen und berechnen <span class="koord">Woche 14–15</span></h2><div class="karte"><ul><li>${L('TFE1_EK_230-Infoblatt-Glaettung-28.pdf','Infoblatt Glättung')}</li><li>${L('TFE1_EK_231-Labor2-Glaettung-28.pdf','Arbeitsblatt Labor 2')}</li></ul></div><p><button class="los" onclick="starte('t_glatt')">Test „Glättung“</button> <span id="b_t_glatt"></span></p>`},
+ {id:'wb',t:'Wettbewerb',html:''},
+ {id:'rl',t:'Rangliste',html:''},
+ {id:'ab',t:'Labornachweis',html:`<h2>Woche 16 – Labornachweis und Fachgespräch</h2><div class="karte"><ul><li>${L('TFE1_EK_241-Labornachweis-RevB-28.pdf','Labornachweis VM-5 Rev B')}</li><li>${L('TFE1_EK_291-Punktmatrix-28.pdf','Punktmatrix')}</li></ul></div><p>Fachgespräch: 3 Minuten je Team – Fehler von Rev A, Lösungsweg, Stückliste und Preis, eine Schwäche Ihres Entwurfs. Jedes Teammitglied spricht.</p>`}
+];
+function nav(){const n=document.getElementById('nav');n.innerHTML='';SEITEN.forEach(s=>{const b=document.createElement('button');const f=frei(s.id);b.textContent=(f?'':'🔒 ')+s.t;b.className=(s.id===akt?'akt ':'')+(f?'':'zu');b.onclick=()=>zeige(s.id);n.appendChild(b)})}
+let akt='auftrag';
+function zeige(id){akt=id;const s=SEITEN.find(x=>x.id===id);const z=document.getElementById('seite');
+ if(!frei(id)){z.innerHTML=`<h2>${s.t}</h2><p class="koord">Gesperrt: Bestehen Sie zuerst ${id==='l2'?'den Test „Stabilisierung“':'die Tests „Stabilisierung“ und „Glättung“'} mit mindestens 80 %.</p>`;nav();return}
+ if(id==='wb')z.innerHTML=wettbewerb();else if(id==='rl'){z.innerHTML='<h2>Rangliste</h2><p>wird geladen …</p>';rangliste()}else z.innerHTML=s.html+'<div id="quiz"></div>';
+ ['t_stab','t_glatt'].forEach(t=>{const b=document.getElementById('b_'+t);const r=lies(t);if(b&&r)b.innerHTML=r.p>=80?`<span class="stempel">bestanden ${r.p} %</span>`:`${r.p} % – noch nicht bestanden`});
+ if(id==='wb')rechne();nav();}
+function starte(id){const T=TESTS[id];let h='<h2>'+T.titel+'</h2>';
+ T.fragen.forEach((f,i)=>{h+='<div class="frage"><b>'+(i+1)+'. '+f.t+'</b> <span class="koord">('+f.k+')</span><br>';
+  if(f.num!==undefined)h+='<input type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 12,5" id="f'+i+'">';
+  else f.o.forEach((o,j)=>h+='<label><input type="'+(f.multi?'checkbox':'radio')+'" name="f'+i+'" value="'+j+'"> '+o+'</label>');
+  h+='<div class="fb" id="fb'+i+'"></div></div>';});
+ h+='<p><button class="los" onclick="werte(\''+id+'\')">Auswerten</button> <button class="los sek" onclick="document.getElementById(\'quiz\').innerHTML=\'\'">Schließen</button></p><div id="erg"></div>';
+ const q=document.getElementById('quiz');q.innerHTML=h;q.scrollIntoView({behavior:'smooth'});}
+const zahl=v=>parseFloat(String(v||'').replace(/\s/g,'').replace(',','.'));
+function werte(id){const T=TESTS[id];let r=0;const k={};
+ T.fragen.forEach((f,i)=>{let ok;
+  if(f.num!==undefined){const v=zahl(document.getElementById('f'+i).value);ok=!isNaN(v)&&Math.abs(v-f.num)<=f.tol;}
+  else{const sel=[...document.querySelectorAll('input[name=f'+i+']:checked')].map(x=>+x.value).sort().join();ok=sel===f.r.slice().sort().join();}
+  if(ok)r++;k[f.k]=k[f.k]||[0,0];k[f.k][1]++;if(ok)k[f.k][0]++;
+  const fb=document.getElementById('fb'+i);fb.className='fb '+(ok?'r':'f');fb.textContent=(ok?'Richtig. ':'Nicht richtig. ')+f.e;});
+ const p=Math.round(r/T.fragen.length*100);schreib(id,{p:p,t:Date.now()});
+ let h='<p><b>Ergebnis: '+r+' von '+T.fragen.length+' ('+p+' %)'+(p>=80?' – bestanden.':' – noch nicht bestanden. Fehler nacharbeiten und erneut versuchen.')+'</b></p><table><tr><th>Koordinate</th><th>richtig</th></tr>';
+ for(const x in k)h+='<tr><td>'+x+'</td><td>'+k[x][0]+' / '+k[x][1]+'</td></tr>';
+ document.getElementById('erg').innerHTML=h+'</table>';
+ ['t_stab','t_glatt'].forEach(t=>{const b=document.getElementById('b_'+t);const q=lies(t);if(b&&q)b.innerHTML=q.p>=80?`<span class="stempel">bestanden ${q.p} %</span>`:`${q.p} % – noch nicht bestanden`});nav();}
+// ---------- Wettbewerb ----------
+function opt(o,f){return Object.keys(o).map(k=>`<option value="${k}">${f(k,o[k])}</option>`).join('')}
+function wettbewerb(){return `<h2>Wettbewerb – Preisrechner und Nachweis-Check</h2>
+ <p>Wählen Sie Ihre Bauteile aus dem Katalog. Der Preisrechner zeigt den Stückpreis. Im Nachweis-Check tragen Sie <b>Ihre eigenen Rechenwerte</b> ein. Die Seite prüft, ob sie stimmen – die richtigen Werte verrät sie nicht. Rechenregeln wie in der Leitsituation (Netz −10 % / C −20 % für u<sub>E,min</sub>; Netz +10 % / C Nennwert für P<sub>V</sub>; ϑ<sub>U</sub> = 40 °C; U<sub>F</sub> = 0,8 V je Diode).</p>
+ <div class="karte"><table><tr><th>Trafo</th><td><select id="s_tr" onchange="rechne()">${opt(TR,(k,v)=>v.n+' – '+v.p.toFixed(2).replace('.',',')+' €')}</select></td></tr>
+ <tr><th>Ladekondensator 25 V</th><td><select id="s_c" onchange="rechne()">${opt(CK,(k,v)=>k+' µF – '+v.toFixed(2).replace('.',',')+' €')}</select></td></tr>
+ <tr><th>Regler</th><td><select id="s_r" onchange="rechne()">${opt(RG,(k,v)=>v.n+' – '+v.p.toFixed(2).replace('.',',')+' €')}</select></td></tr>
+ <tr><th>Kühlkörper KK-1</th><td><select id="s_k" onchange="rechne()"><option value="1">ja – 0,55 €</option><option value="0">nein</option></select></td></tr>
+ <tr><th>Pflichtteile, Gleichrichter</th><td>0,32 € + 0,12 €</td></tr></table>
+ <p>Stückpreis: <span class="preis" id="preis"></span></p></div>
+ <h3>Nachweis-Check</h3>
+ <table><tr><th>Ihr Rechenwert</th><th>Eingabe</th><th>Prüfung</th></tr>
+ ${[['uhlo','û bei Netz −10 % in V'],['du','ΔU (C −20 %) in V'],['umin','u<sub>E,min</sub> in V'],['uc','U<sub>C</sub> bei Netz +10 % (C Nennwert) in V'],['pv','P<sub>V</sub> in W'],['tj','ϑ<sub>J</sub> in °C'],['s','nötige Trafoleistung 1,8 · U<sub>Tr</sub> · I<sub>L</sub> in VA']].map(([k,t])=>`<tr><td>${t}</td><td><input type="text" inputmode="decimal" id="n_${k}"></td><td id="c_${k}"></td></tr>`).join('')}
+ </table><p><button class="los" onclick="pruefe()">Werte prüfen</button></p><div id="urteil"></div>
+ <p class="koord">Abgabe: Entwurfsmappe 240 mit Rechenweg bis Ende Woche 15. Der Check ersetzt den Rechenweg nicht.</p>`}
+function soll(){const t=TR[document.getElementById('s_tr').value],C=+document.getElementById('s_c').value*1e-6,r=RG[document.getElementById('s_r').value],kk=document.getElementById('s_k').value==='1';
+ const lo=0.9*Math.SQRT2*t.u-1.6,hi=1.1*Math.SQRT2*t.u-1.6,du=0.3/(100*0.8*C),umin=lo-du,uc=hi-0.3/(100*C)/2,pv=(uc-5)*0.3,tj=40+pv*(kk?15:50),s=1.8*t.u*0.3;
+ return {uhlo:lo,du:du,umin:umin,uc:uc,pv:pv,tj:tj,s:s,ok:umin>=5+r.d&&tj<=110&&t.s>=s,t:t,r:r,kk:kk}}
+function rechne(){const e=document.getElementById('s_tr');if(!e)return;const t=TR[e.value],c=CK[document.getElementById('s_c').value],r=RG[document.getElementById('s_r').value],kk=document.getElementById('s_k').value==='1';
+ const p=t.p+c+r.p+(kk?0.55:0)+0.32+0.12;document.getElementById('preis').textContent=p.toFixed(2).replace('.',',')+' €';
+ ['uhlo','du','umin','uc','pv','tj','s'].forEach(k=>document.getElementById('c_'+k).textContent='');document.getElementById('urteil').innerHTML='';}
+function pruefe(){const S=soll();let alle=true;
+ ['uhlo','du','umin','uc','pv','tj','s'].forEach(k=>{const v=zahl(document.getElementById('n_'+k).value),z=S[k];const tol=Math.max(Math.abs(z)*0.03,k==='tj'?1:0.05);
+  const r=!isNaN(v)&&Math.abs(v-z)<=tol;if(!r)alle=false;const c=document.getElementById('c_'+k);c.innerHTML=isNaN(v)?'<span class="nok">fehlt</span>':(r?'<span class="ok">✓ stimmt</span>':'<span class="nok">✗ nachrechnen</span>');});
+ const u=document.getElementById('urteil');
+ if(!alle){u.innerHTML='<p>Noch nicht alle Werte stimmen. Die Bewertung des Entwurfs erscheint erst, wenn alle Rechenwerte stimmen. Tipp: Hilfekarten H4 und H5.</p>';return}
+ const g=[];if(S.umin<5+S.r.d)g.push('Regler setzt im Brummtal aus (u<sub>E,min</sub> zu klein)');if(S.tj>110)g.push('Sperrschicht zu heiß (P5)');if(S.t.s<S.s)g.push('Trafo-Nennleistung zu klein (P7)');
+ u.innerHTML=g.length?'<p class="nok">Alle Rechenwerte stimmen – aber der Entwurf fällt durch die K.-o.-Prüfung: '+g.join('; ')+'.</p>':'<p class="ok">Alle Rechenwerte stimmen, der Entwurf erfüllt P1–P8. Jetzt Stückliste und Begründung in die Entwurfsmappe – und überlegen: Geht es noch günstiger?</p>';}
+// ---------- Rangliste ----------
+async function rangliste(){const z=document.getElementById('seite');let d=[];
+ try{d=await (await fetch('rangliste.json',{cache:'no-store'})).json()}catch(e){}
+ if(!d.length){z.innerHTML='<h2>Rangliste</h2><p>Die Rangliste erscheint nach der Abgabe (Ende Woche 15).</p>';return}
+ d.sort((a,b)=>(b.gueltig-a.gueltig)||(a.preis-b.preis));
+ let h='<h2>Rangliste VM-5 Rev B</h2><table class="podest"><tr><th>Platz</th><th>Team</th><th>Stückpreis</th><th>gültig</th><th>Punkte gesamt</th></tr>';
+ d.forEach((x,i)=>h+=`<tr><td>${x.gueltig?(['🥇','🥈','🥉'][i]||i+1):'–'}</td><td>${x.team}</td><td>${x.preis.toFixed(2).replace('.',',')} €</td><td>${x.gueltig?'<span class="ok">ja</span>':'<span class="nok">nein</span>'}</td><td>${x.punkte??''}</td></tr>`);
+ z.innerHTML=h+'</table><p class="koord">Gewertet: Kosten 30 · Begründung 30 · Labornachweis 25 · Fachgespräch 15.</p>';}
+zeige('auftrag');
+</script>
+</body>
+</html>
